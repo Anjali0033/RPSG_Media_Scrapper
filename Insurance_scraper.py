@@ -87,7 +87,7 @@ def extract_tables_to_excel(pdf_path, excel_path):
         df = pd.DataFrame(table[2:], columns=headers)
         df = pd.DataFrame(table[2:], columns=headers)
 
-        # ADD THIS: Static sales/premium data (₹ Cr)
+        # Static premium data (₹ Cr) [Static values from https://www.screener.in/]
         premium_data = {
             "Aditya Birla Sun Life Insurance Co. Ltd.": 16000,
             "Aegon Life Ins.Co.Ltd.": 900,
