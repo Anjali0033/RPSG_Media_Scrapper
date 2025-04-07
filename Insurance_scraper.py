@@ -49,20 +49,81 @@ def extract_rotate_and_save_pdf(input_pdf, output_pdf, page_number):
     print(f"Rotated page saved as: {output_pdf}")
 
 def extract_tables_to_excel(pdf_path, excel_path):
+    import pdfplumber
+    import pandas as pd
+
     with pdfplumber.open(pdf_path) as pdf:
         page = pdf.pages[0]
         tables = page.extract_tables()
 
         if not tables:
-            print("No tables found on the page.")
+            print("No tables found.")
             return
 
-        with pd.ExcelWriter(excel_path) as writer:
-            for i, table in enumerate(tables):
-                df = pd.DataFrame(table[1:], columns=table[0])
-                df.to_excel(writer, sheet_name=f"Table_{i+1}", index=False)
+        table = tables[0]
 
-        print(f"Tables saved to Excel: {excel_path}")
+        headers = [
+    "Name of Company",
+    "Complaints O/s at the beginning of the year",
+    "Complaints Received during the period",
+    "Complaints Total",
+    "Disposed by way of - Recommendations",
+    "Disposed by way of - Awards fvg complainant",
+    "Disposed by way of - Awards fvg ins. Co.",
+    "Disposed by way of - Withdrawal",
+    "Disposed by way of - Non-Entertainable",
+    "Disposed by way of - Total Disposed",
+    "Disposal Duration - Within 3 months",
+    "Disposal Duration - 3 months to 1 year",
+    "Disposal Duration - Above 1 year",
+    "Disposal Duration - Total Disposed",
+    "Outstanding Duration - Within 3 months",
+    "Outstanding Duration - 3 months to 1 year",
+    "Outstanding Duration - Above 1 year",
+    "Outstanding Duration - Total Outstanding"
+]
+
+
+        df = pd.DataFrame(table[2:], columns=headers)
+        df = pd.DataFrame(table[2:], columns=headers)
+
+        # ADD THIS: Static sales/premium data (₹ Cr)
+        premium_data = {
+            "Aditya Birla Sun Life Insurance Co. Ltd.": 16000,
+            "Aegon Life Ins.Co.Ltd.": 900,
+            "Ageas Federal Life Ins.Co.Ltd.": 1200,
+            "Aviva Life Ins. Co. India Pvt. Ltd.": 1100,
+            "Bajaj Allianz Life Insurance Co. Ltd.": 21500,
+            "Bharti AXA Life Ins. Co. Ltd.": 3200,
+            "Canara HSBC Oriental Bank of Commerce Life Ins. Co. Ltd.": 3300,
+            "Edelweiss Tokio Life Ins. Co. Ltd.": 1400,
+            "Exide Life Insurance Company Ltd.": 2800,
+            "Future Generali India Life Ins. Co. Ltd.": 2100,
+            "HDFC Life Insurance Co. Ltd.": 60500,
+            "ICICI Prudential Life Insurance Co. Ltd.": 52800,
+            "IndiaFirst Life Insurance Co. Ltd.,": 5600,
+            "Kotak Mahindra Life Insurance Company": 9400,
+            "LIC of India": 240000,
+            "Max Life insurance Co. Ltd.": 24000,
+            "PNB Metlife India Ins. Co. P. Ltd.": 8900,
+            "Pramerica Life Ins.Co.Ltd.": 500,
+            "Reliance Nippon Life Insurance Co. Ltd.": 5800,
+            "Sahara India Life Ins. Co. Ltd": 90,
+            "SBI Life Insurance Co. Ltd.": 62000,
+            "Shriram Life Ins. Co. Ltd.": 3500,
+            "Star Union Dai-ichi-Life Ins. Co.": 4200,
+            "Tata AIA Life Insurance Co. Ltd.": 14000
+        }
+
+        # Add sales and complaints per ₹100 Cr premium
+        df["Total Complaints"] = pd.to_numeric(df["Complaints Total"], errors='coerce')
+        df["Total Premium (₹ Cr)"] = df["Name of Company"].map(premium_data)
+        df["Complaints per ₹100 Cr Premium"] = (df["Total Complaints"] / df["Total Premium (₹ Cr)"] * 100).round(2)
+
+        # Save final output
+        df.to_excel(excel_path, index=False)
+        print(f"Cleaned data saved to: {excel_path}")
+
 
 downloaded_pdf = download_pdf()
 
